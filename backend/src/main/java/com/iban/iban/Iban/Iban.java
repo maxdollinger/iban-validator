@@ -64,7 +64,7 @@ public abstract class Iban {
         String countryCode = value.substring(0, 2).toUpperCase();
 
         for (String code : Locale.getISOCountries()) {
-            if (code == countryCode) {
+            if (code.equals(countryCode)) {
                 return countryCode;
             }
         }

@@ -1,13 +1,13 @@
 package com.iban.iban;
 
-import com.iban.common.ApiV1Controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-@ApiV1Controller
-@RequestMapping("/iban")
+@RestController
+@RequestMapping("/api/v1/iban")
 public class IbanController {
 
     private final IbanService ibanService;

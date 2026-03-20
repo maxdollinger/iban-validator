@@ -83,6 +83,10 @@ public class Bank {
             return false;
         }
 
+        if (this.accountAlgo == null) {
+            return true;
+        }
+
         return switch (this.accountAlgo) {
             default -> true;
         };
