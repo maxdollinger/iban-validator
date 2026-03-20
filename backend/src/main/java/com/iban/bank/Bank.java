@@ -3,14 +3,18 @@ package com.iban.bank;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "bank")
+@Table(name = "bank", uniqueConstraints = {
+        @UniqueConstraint(name = "uc_country_bank_code", columnNames = { "country_code", "bank_code" })
+}, indexes = {
+        @Index(name = "idx_country_code", columnList = "country_code, bank_code")
+})
 public class Bank {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "bank_code", nullable = false, unique = true)
+    @Column(name = "bank_code", nullable = false)
     private String bankCode;
 
     @Column(name = "country_code", nullable = false, length = 2)
