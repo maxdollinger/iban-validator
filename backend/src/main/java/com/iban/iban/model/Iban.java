@@ -1,4 +1,4 @@
-package com.iban.iban;
+package com.iban.iban.model;
 
 import java.math.BigInteger;
 import java.util.Locale;
@@ -11,7 +11,7 @@ public abstract class Iban {
     public final String iban;
 
     protected Iban(String iban) {
-        this.bban = iban.substring(0, 4);
+        this.bban = iban.substring(4);
         this.iban = iban;
     }
 
@@ -32,11 +32,11 @@ public abstract class Iban {
 
         String countryCode = normalizedIban.substring(0, 2);
         if (!validateCountryCode(countryCode)) {
-            throw new IllegalArgumentException("IBAN has no valid country code");
+            throw new IllegalArgumentException("IBAN has invalid country code");
         }
 
         if (mod97(normalizedIban) != 1) {
-            throw new IllegalArgumentException("IBAN has no valid checksum");
+            throw new IllegalArgumentException("IBAN has invalid checksum");
         }
 
         return switch (countryCode) {
@@ -46,13 +46,11 @@ public abstract class Iban {
     }
 
     private static boolean validateCountryCode(String countryCode) {
-
         for (String isoCode : Locale.getISOCountries()) {
             if (isoCode.equalsIgnoreCase(countryCode)) {
                 return true;
             }
         }
-
         return false;
     }
 

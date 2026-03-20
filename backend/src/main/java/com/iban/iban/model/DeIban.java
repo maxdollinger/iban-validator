@@ -1,4 +1,4 @@
-package com.iban.iban;
+package com.iban.iban.model;
 
 public class DeIban extends Iban {
 
