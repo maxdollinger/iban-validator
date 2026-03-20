@@ -36,4 +36,5 @@ class IbanTest {
         assertThat(iban.getCountryCode()).isEqualTo("DE");
         assertThat(iban.iban).isEqualTo("DE89370400440532013000");
     }
+
 }
