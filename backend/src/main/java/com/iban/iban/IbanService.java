@@ -34,6 +34,10 @@ public class IbanService {
 
             Bank bank = bankOpt.get();
 
+            if (!bank.accountValidation(iban.extractBankAccount())) {
+                return IbanValidationResponse.failure("IBAN has a invalid bank account");
+            }
+
             return IbanValidationResponse.success(iban.getValue(), bank.getName(), null);
         } catch (IllegalArgumentException e) {
             return IbanValidationResponse.failure(e.getMessage());

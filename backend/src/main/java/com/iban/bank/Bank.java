@@ -77,4 +77,14 @@ public class Bank {
     public void setAccountAlgo(String accountAlgo) {
         this.accountAlgo = accountAlgo;
     }
+
+    public boolean accountValidation(String account) {
+        if (account.isEmpty()) {
+            return false;
+        }
+
+        return switch (this.accountAlgo) {
+            default -> true;
+        };
+    }
 }
