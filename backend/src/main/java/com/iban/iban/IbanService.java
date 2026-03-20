@@ -1,12 +1,20 @@
 package com.iban.iban;
 
+import com.iban.bank.Bank;
+import com.iban.bank.BankService;
 import com.iban.iban.Iban.*;
+
+import java.util.Optional;
+
 import org.springframework.stereotype.Service;
 
 @Service
 public class IbanService {
 
-    public IbanService() {
+    private BankService bankService;
+
+    public IbanService(BankService bankService) {
+        this.bankService = bankService;
     }
 
     public IbanValidationResponse validate(String value) {
@@ -16,9 +24,17 @@ public class IbanService {
             if (iban instanceof BasicIban) {
                 String warning = "No special validation for " + iban.countryCode()
                         + "implemented. Could still be invalid.";
-                return IbanValidationResponse.success(iban.getValue(), warning);
+                return IbanValidationResponse.success(iban.getValue(), null, warning);
             }
-            return IbanValidationResponse.success(iban.getValue(), null);
+
+            Optional<Bank> bankOpt = bankService.getBankByIban(iban);
+            if (bankOpt.isEmpty()) {
+                return IbanValidationResponse.success(iban.getValue(), null, "Bank not found");
+            }
+
+            Bank bank = bankOpt.get();
+
+            return IbanValidationResponse.success(iban.getValue(), bank.getName(), null);
         } catch (IllegalArgumentException e) {
             return IbanValidationResponse.failure(e.getMessage());
         }
