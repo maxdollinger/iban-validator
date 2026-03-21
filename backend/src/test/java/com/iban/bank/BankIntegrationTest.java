@@ -1,60 +1,66 @@
 package com.iban.bank;
 
 import com.iban.AbstractIntegrationTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@Transactional
 class BankIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
-    private MockMvc mockMvc;
+    private WebTestClient webTestClient;
 
     @Autowired
     private BankRepository bankRepository;
 
+    @BeforeEach
+    void setUp() {
+        bankRepository.deleteAll();
+    }
+
     @Test
-    void upsertBank_createsNewBank() throws Exception {
-        mockMvc.perform(post("/api/v1/bank/")
+    void upsertBank_createsNewBank() {
+        webTestClient.post().uri("/api/v1/bank/")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""
+                .bodyValue("""
                     {
                         "bankCode": "37040044",
                         "countryCode": "DE",
                         "name": "Commerzbank",
                         "accountAlgo": null
                     }
-                    """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.bankCode").value("37040044"))
-                .andExpect(jsonPath("$.countryCode").value("DE"))
-                .andExpect(jsonPath("$.name").value("Commerzbank"))
-                .andExpect(jsonPath("$.id").isNumber());
+                    """)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.bankCode").isEqualTo("37040044")
+                .jsonPath("$.countryCode").isEqualTo("DE")
+                .jsonPath("$.name").isEqualTo("Commerzbank")
+                .jsonPath("$.id").isNumber();
     }
 
     @Test
-    void upsertBank_updatesExistingBank() throws Exception {
+    void upsertBank_updatesExistingBank() {
         bankRepository.save(new Bank("37040044", "DE", "Commerzbank OLD", null));
 
-        mockMvc.perform(post("/api/v1/bank/")
+        webTestClient.post().uri("/api/v1/bank/")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("""
+                .bodyValue("""
                     {
                         "bankCode": "37040044",
                         "countryCode": "DE",
                         "name": "Commerzbank AG",
                         "accountAlgo": null
                     }
-                    """))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value("Commerzbank AG"));
+                    """)
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.name").isEqualTo("Commerzbank AG");
     }
 
     @Test
