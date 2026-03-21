@@ -4,20 +4,22 @@ import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 export const Route = createRootRoute({
 	component: () => (
 		<>
-			<nav
-				style={{
-					display: "flex",
-					gap: "1rem",
-					padding: "1rem",
-					borderBottom: "1px solid #eee",
-				}}
-			>
-				<Link to="/" activeOptions={{ exact: true }}>
+			<nav className="flex gap-4 px-6 py-3 border-b border-border">
+				<Link
+					to="/"
+					activeOptions={{ exact: true }}
+					className="text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground [&.active]:font-medium"
+				>
 					Home
 				</Link>
-				<Link to="/bank">Bank</Link>
+				<Link
+					to="/bank"
+					className="text-muted-foreground hover:text-foreground transition-colors [&.active]:text-foreground [&.active]:font-medium"
+				>
+					Bank
+				</Link>
 			</nav>
-			<main style={{ padding: "1rem" }}>
+			<main className="p-6">
 				<Outlet />
 			</main>
 			<TanStackRouterDevtools />

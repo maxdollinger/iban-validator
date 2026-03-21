@@ -6,7 +6,7 @@
 		"useIgnoreFile": true
 	},
 	"files": {
-		"includes": ["**", "!!**/dist", "!!**/routeTree.gen.ts"]
+		"includes": ["**", "!!**/dist", "!!**/routeTree.gen.ts", "!!**/*.css"]
 	},
 	"formatter": {
 		"enabled": true,
@@ -21,6 +21,15 @@
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double"
+		}
+	},
+	"css": {
+		"parser": {
+			"cssModules": true,
+			"allowWrongLineComments": true
+		},
+		"linter": {
+			"enabled": false
 		}
 	},
 	"assist": {
