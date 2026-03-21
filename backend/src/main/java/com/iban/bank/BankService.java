@@ -21,9 +21,9 @@ public class BankService {
 
     public Optional<Bank> getBankByIban(Iban iban) {
         Optional<Bank> bank = bankRepository.findByCountryCodeAndBankCode(iban.countryCode(),
-                iban.extractBankAccount());
+                iban.extractBankCode());
         if (bank.isEmpty()) {
-            log.warn("Bank not found for country={} bankCode={}", iban.countryCode(), iban.extractBankAccount());
+            log.warn("Bank not found for country={} bankCode={}", iban.countryCode(), iban.extractBankCode());
         }
         return bank;
     }
