@@ -56,7 +56,11 @@ public abstract class Iban {
         return value.replaceAll("[^a-zA-Z0-9]", "").toUpperCase();
     }
 
-    public static String extractCountryCode(String value) {
-        return CountryCodeUtil.validate(value.substring(0, 2));
+    public static String extractCountryCode(String iban) {
+        if (iban == null || iban.length() < 2) {
+            throw new IllegalArgumentException("Valid country code must have at least 2 letters");
+        }
+
+        return CountryCodeUtil.validate(iban.substring(0, 2));
     }
 }

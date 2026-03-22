@@ -80,6 +80,14 @@ public class Bank {
     }
 
     public AccountValidationResult accountValidation(String account) {
+        if (account.isEmpty()) {
+            return AccountValidationResult.INVALID;
+        }
+
+        if (this.accountAlgo == null) {
+            return AccountValidationResult.NOT_IMPLEMENTED;
+        }
+
         return switch (this.accountAlgo) {
             default -> AccountValidationResult.NOT_IMPLEMENTED;
         };
