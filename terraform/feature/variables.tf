@@ -26,3 +26,8 @@ variable "db_master_password" {
   type        = string
   sensitive   = true
 }
+
+variable "hosted_zone_name" {
+  description = "Route53 hosted zone name for DNS validation (e.g. example.com)"
+  type        = string
+}

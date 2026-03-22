@@ -37,9 +37,29 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 
 locals {
-  staging = data.terraform_remote_state.staging.outputs
-  env     = "feat-${var.branch_name}"
-  db_name = "iban_${replace(var.branch_name, "-", "_")}"
+  staging     = data.terraform_remote_state.staging.outputs
+  env         = "feat-${var.branch_name}"
+  db_name     = "iban_${replace(var.branch_name, "-", "_")}"
+  domain_name = "${var.branch_name}.${var.hosted_zone_name}"
+}
+
+module "certificate" {
+  source = "../modules/certificate"
+
+  domain_name      = local.domain_name
+  hosted_zone_name = var.hosted_zone_name
+}
+
+resource "aws_route53_record" "feature" {
+  zone_id = module.certificate.hosted_zone_id
+  name    = local.domain_name
+  type    = "A"
+
+  alias {
+    name                   = module.loadbalancer.alb_dns_name
+    zone_id                = module.loadbalancer.alb_zone_id
+    evaluate_target_health = true
+  }
 }
 
 module "loadbalancer" {
@@ -49,6 +69,7 @@ module "loadbalancer" {
   environment       = local.env
   vpc_id            = local.staging.vpc_id
   public_subnet_ids = local.staging.public_subnet_ids
+  certificate_arn   = module.certificate.certificate_arn
 }
 
 module "compute" {

@@ -92,3 +92,13 @@ variable "rds_backup_retention_period" {
   type        = number
   default     = 0
 }
+
+variable "domain_name" {
+  description = "Domain name for ACM certificate (e.g. app.example.com)"
+  type        = string
+}
+
+variable "hosted_zone_name" {
+  description = "Route53 hosted zone name for DNS validation (e.g. example.com)"
+  type        = string
+}

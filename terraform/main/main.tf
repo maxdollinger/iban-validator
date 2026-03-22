@@ -76,6 +76,13 @@ module "database" {
   backup_retention_period = var.rds_backup_retention_period
 }
 
+module "certificate" {
+  source = "../modules/certificate"
+
+  domain_name      = var.domain_name
+  hosted_zone_name = var.hosted_zone_name
+}
+
 module "loadbalancer" {
   source = "../modules/loadbalancer"
 
@@ -83,6 +90,7 @@ module "loadbalancer" {
   environment       = var.environment
   vpc_id            = module.networking.vpc_id
   public_subnet_ids = module.networking.public_subnet_ids
+  certificate_arn   = module.certificate.certificate_arn
 }
 
 module "compute" {

@@ -22,3 +22,8 @@ output "feature_db_name" {
   description = "Database name created for this feature branch"
   value       = local.db_name
 }
+
+output "feature_url" {
+  description = "HTTPS URL for this feature branch"
+  value       = "https://${local.domain_name}"
+}
