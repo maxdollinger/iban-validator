@@ -1,20 +1,20 @@
 package com.iban.iban;
 
 public record IbanValidationResponse(
-        boolean valid,
         String iban,
+        boolean patternValid,
         String bankName,
-        String warning,
+        AccountValidationResult accountNumberValidation,
         String error) {
 
-    public static IbanValidationResponse success(
-            String iban,
-            String bankName,
-            String warning) {
-        return new IbanValidationResponse(true, iban, bankName, warning, null);
+    public static IbanValidationResponse patternInvalid(String error) {
+        return new IbanValidationResponse(null, false, null, null, error);
     }
 
-    public static IbanValidationResponse failure(String error) {
-        return new IbanValidationResponse(false, null, null, null, error);
+    public static IbanValidationResponse validated(
+            String iban,
+            String bankName,
+            AccountValidationResult accountNumberValidation) {
+        return new IbanValidationResponse(iban, true, bankName, accountNumberValidation, null);
     }
 }

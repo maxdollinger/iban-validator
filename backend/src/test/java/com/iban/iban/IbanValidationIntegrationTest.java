@@ -29,18 +29,20 @@ class IbanValidationIntegrationTest extends AbstractIntegrationTest {
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody()
-                .jsonPath("$.valid").isEqualTo(true)
-                .jsonPath("$.bankName").isEqualTo("Commerzbank");
+                .jsonPath("$.patternValid").isEqualTo(true)
+                .jsonPath("$.bankName").isEqualTo("Commerzbank")
+                .jsonPath("$.accountNumberValidation").isEqualTo("NOT_IMPLEMENTED");
     }
 
     @Test
-    void validateGermanIban_bankNotFound_returnsValidWithWarning() {
+    void validateGermanIban_bankNotFound_returnsValidWithoutBank() {
         webTestClient.get().uri("/api/v1/iban/validation?iban=DE89370400440532013000")
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody()
-                .jsonPath("$.valid").isEqualTo(true)
-                .jsonPath("$.warning").isEqualTo("Bank not found");
+                .jsonPath("$.patternValid").isEqualTo(true)
+                .jsonPath("$.bankName").doesNotExist()
+                .jsonPath("$.accountNumberValidation").isEqualTo("NOT_IMPLEMENTED");
     }
 
     @Test
@@ -49,17 +51,17 @@ class IbanValidationIntegrationTest extends AbstractIntegrationTest {
                 .exchange()
                 .expectStatus().isBadRequest()
                 .expectBody()
-                .jsonPath("$.valid").isEqualTo(false)
+                .jsonPath("$.patternValid").isEqualTo(false)
                 .jsonPath("$.error").isNotEmpty();
     }
 
     @Test
-    void validateNonGermanIban_returnsValidWithWarning() {
+    void validateNonGermanIban_returnsValidNotImplemented() {
         webTestClient.get().uri("/api/v1/iban/validation?iban=GB82WEST12345698765432")
                 .exchange()
                 .expectStatus().isOk()
                 .expectBody()
-                .jsonPath("$.valid").isEqualTo(true)
-                .jsonPath("$.warning").isNotEmpty();
+                .jsonPath("$.patternValid").isEqualTo(true)
+                .jsonPath("$.accountNumberValidation").isEqualTo("NOT_IMPLEMENTED");
     }
 }

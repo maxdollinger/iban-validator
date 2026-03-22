@@ -28,28 +28,22 @@ public class IbanService {
 
             if (iban instanceof BasicIban) {
                 log.warn("No specific validation for country={}", iban.countryCode());
-                String warning = "No special validation for " + iban.countryCode()
-                        + "implemented. Could still be invalid.";
-                return IbanValidationResponse.success(iban.getValue(), null, warning);
+                return IbanValidationResponse.validated(iban.getValue(), null, AccountValidationResult.NOT_IMPLEMENTED);
             }
 
             Optional<Bank> bankOpt = bankService.getBankByIban(iban);
             if (bankOpt.isEmpty()) {
-                return IbanValidationResponse.success(iban.getValue(), null, "Bank not found");
+                return IbanValidationResponse.validated(iban.getValue(), null, AccountValidationResult.NOT_IMPLEMENTED);
             }
 
             Bank bank = bankOpt.get();
+            AccountValidationResult accountResult = bank.accountValidation(iban.extractBankAccount());
 
-            if (!bank.accountValidation(iban.extractBankAccount())) {
-                log.warn("Account validation failed for IBAN: {}", value);
-                return IbanValidationResponse.failure("IBAN has a invalid bank account");
-            }
-
-            log.info("IBAN valid: {} bank={}", value, bank.getName());
-            return IbanValidationResponse.success(iban.getValue(), bank.getName(), null);
+            log.info("IBAN validated: {} bank={} account={}", value, bank.getName(), accountResult);
+            return IbanValidationResponse.validated(iban.getValue(), bank.getName(), accountResult);
         } catch (IllegalArgumentException e) {
             log.error("IBAN validation error: {}", e.getMessage());
-            return IbanValidationResponse.failure(e.getMessage());
+            return IbanValidationResponse.patternInvalid(e.getMessage());
         }
     }
 

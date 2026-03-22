@@ -1,14 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { AlertTriangle, CheckCircle2, Loader2, XCircle } from "lucide-react";
+import {
+    AlertTriangle,
+    CheckCircle2,
+    Loader2,
+    XCircle,
+} from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 
+type AccountValidationResult = "VALID" | "INVALID" | "NOT_IMPLEMENTED";
+
 interface IbanValidationResponse {
-    valid: boolean;
     iban: string | null;
+    patternValid: boolean;
     bankName: string | null;
-    warning: string | null;
+    accountNumberValidation: AccountValidationResult | null;
     error: string | null;
 }
 
@@ -60,7 +67,6 @@ function Index() {
                 </p>
             )}
 
-
             {cleaned.length > 34 && (
                 <p className="text-sm text-muted-foreground">
                     IBAN to long
@@ -87,7 +93,17 @@ function Index() {
 }
 
 function ValidationResult({ result }: { result: IbanValidationResponse }) {
-    if (!result.valid) {
+    return (
+        <div className="space-y-3">
+            <StepPattern result={result} />
+            {result.patternValid && <StepBankName result={result} />}
+            {result.patternValid && <StepAccountValidation result={result} />}
+        </div>
+    );
+}
+
+function StepPattern({ result }: { result: IbanValidationResponse }) {
+    if (!result.patternValid) {
         return (
             <div className="flex items-start gap-3 rounded-lg border border-red-300 bg-red-50 p-4 text-red-700 dark:border-red-800 dark:bg-red-950/50 dark:text-red-400">
                 <XCircle className="mt-0.5 h-5 w-5 shrink-0" />
@@ -98,14 +114,23 @@ function ValidationResult({ result }: { result: IbanValidationResponse }) {
         );
     }
 
-    if (result.warning) {
+    return (
+        <div className="flex items-start gap-3 rounded-lg border border-green-300 bg-green-50 p-4 text-green-700 dark:border-green-800 dark:bg-green-950/50 dark:text-green-400">
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
+            <div>
+                <p className="mt-1">IBAN pattern is valid</p>
+            </div>
+        </div>
+    );
+}
+
+function StepBankName({ result }: { result: IbanValidationResponse }) {
+    if (!result.bankName) {
         return (
             <div className="flex items-start gap-3 rounded-lg border border-yellow-300 bg-yellow-50 p-4 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-950/50 dark:text-yellow-400">
                 <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
                 <div>
-                    {result.bankName && <p className="mt-1 text-sm">{result.bankName}</p>}
-                    <p className="mt-1 text-sm">{result.warning}
-                    </p>
+                    <p className="font-medium">Bank not found</p>
                 </div>
             </div>
         );
@@ -115,10 +140,42 @@ function ValidationResult({ result }: { result: IbanValidationResponse }) {
         <div className="flex items-start gap-3 rounded-lg border border-green-300 bg-green-50 p-4 text-green-700 dark:border-green-800 dark:bg-green-950/50 dark:text-green-400">
             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
             <div>
-                {result.iban && <p className="mt-2 font-mono text-sm">{result.iban}</p>}
-                {result.bankName && (
-                    <p className="mt-1 text-sm">Bank: {result.bankName}</p>
-                )}
+                <p className="font-medium">Bank: {result.bankName}</p>
+            </div>
+        </div>
+    );
+}
+
+function StepAccountValidation({ result }: { result: IbanValidationResponse }) {
+    const status = result.accountNumberValidation;
+
+    if (status === "NOT_IMPLEMENTED") {
+        return (
+            <div className="flex items-start gap-3 rounded-lg border border-yellow-300 bg-yellow-50 p-4 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-950/50 dark:text-yellow-400">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
+                <div>
+                    <p className="font-medium">Account number validation not implemented</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (status === "INVALID") {
+        return (
+            <div className="flex items-start gap-3 rounded-lg border border-red-300 bg-red-50 p-4 text-red-700 dark:border-red-800 dark:bg-red-950/50 dark:text-red-400">
+                <XCircle className="mt-0.5 h-5 w-5 shrink-0" />
+                <div>
+                    <p className="font-medium">Account number invalid</p>
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex items-start gap-3 rounded-lg border border-green-300 bg-green-50 p-4 text-green-700 dark:border-green-800 dark:bg-green-950/50 dark:text-green-400">
+            <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
+            <div>
+                <p className="font-medium">Account number valid</p>
             </div>
         </div>
     );

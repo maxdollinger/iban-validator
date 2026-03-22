@@ -1,5 +1,6 @@
 package com.iban.bank;
 
+import com.iban.iban.AccountValidationResult;
 import jakarta.persistence.*;
 
 @Entity
@@ -78,17 +79,9 @@ public class Bank {
         this.accountAlgo = accountAlgo;
     }
 
-    public boolean accountValidation(String account) {
-        if (account.isEmpty()) {
-            return false;
-        }
-
-        if (this.accountAlgo == null) {
-            return true;
-        }
-
+    public AccountValidationResult accountValidation(String account) {
         return switch (this.accountAlgo) {
-            default -> true;
+            default -> AccountValidationResult.NOT_IMPLEMENTED;
         };
     }
 }

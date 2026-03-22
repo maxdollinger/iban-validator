@@ -19,7 +19,7 @@ public class IbanController {
     @GetMapping("/validation")
     public ResponseEntity<IbanValidationResponse> validate(@RequestParam String iban) {
         IbanValidationResponse response = ibanService.validate(iban);
-        return response.valid()
+        return response.patternValid()
                 ? ResponseEntity.ok(response)
                 : ResponseEntity.badRequest().body(response);
     }
