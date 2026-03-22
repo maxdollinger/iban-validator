@@ -17,10 +17,10 @@ docker-down:
 	docker-compose down
 
 postgres-up:
-	docker-compose up -d postgres
+	podman compose up -d postgres
 
 postgres-down:
-	docker-compose down postgres
+	podman compose down postgres
 
 test-backend:
 	$(eval CONTAINER_ENV := $(shell \
