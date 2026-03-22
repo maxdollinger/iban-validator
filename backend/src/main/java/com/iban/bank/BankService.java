@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.iban.common.CountryCodeUtil;
 import com.iban.iban.Iban.Iban;
 
 import java.util.Optional;
@@ -29,17 +30,33 @@ public class BankService {
     }
 
     public Bank upsertBank(String countryCode, String bankCode, String name, String accountAlgo) {
-        boolean exists = bankRepository.findByCountryCodeAndBankCode(countryCode, bankCode).isPresent();
-        Bank bank = bankRepository.findByCountryCodeAndBankCode(countryCode, bankCode)
-                .orElse(new Bank(bankCode, countryCode, name, accountAlgo));
+        String validatedCountryCode = CountryCodeUtil.validate(countryCode);
+        requireAlphanumeric(bankCode, "bankCode");
+        requireAlphanumeric(name, "name");
+        if (accountAlgo != null && !accountAlgo.isBlank()) {
+            requireAlphanumeric(accountAlgo, "accountAlgo");
+        }
+
+        boolean exists = bankRepository.findByCountryCodeAndBankCode(validatedCountryCode, bankCode).isPresent();
+        Bank bank = bankRepository.findByCountryCodeAndBankCode(validatedCountryCode, bankCode)
+                .orElse(new Bank(bankCode, validatedCountryCode, name, accountAlgo));
 
         bank.setName(name);
         bank.setAccountAlgo(accountAlgo);
 
         Bank saved = bankRepository.save(bank);
-        log.info("{} bank: country={} bankCode={} name={}", exists ? "Updated" : "Created", countryCode, bankCode,
-                name);
+        log.info("{} bank: country={} bankCode={} name={}", exists ? "Updated" : "Created", validatedCountryCode,
+                bankCode, name);
         return saved;
+    }
+
+    private void requireAlphanumeric(String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(fieldName + " must not be blank");
+        }
+        if (!value.matches("[a-zA-Z0-9 ]+")) {
+            throw new IllegalArgumentException(fieldName + " must only contain letters and numbers");
+        }
     }
 
 }

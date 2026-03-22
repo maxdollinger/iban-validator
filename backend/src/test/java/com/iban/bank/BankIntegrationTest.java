@@ -64,6 +64,54 @@ class BankIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void upsertBank_rejectsInvalidCountryCode() {
+        webTestClient.post().uri("/api/v1/bank/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("""
+                    {
+                        "bankCode": "37040044",
+                        "countryCode": "XX",
+                        "name": "Test Bank",
+                        "accountAlgo": null
+                    }
+                    """)
+                .exchange()
+                .expectStatus().isBadRequest();
+    }
+
+    @Test
+    void upsertBank_rejectsNonAlphanumericBankCode() {
+        webTestClient.post().uri("/api/v1/bank/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("""
+                    {
+                        "bankCode": "370-400!44",
+                        "countryCode": "DE",
+                        "name": "Test Bank",
+                        "accountAlgo": null
+                    }
+                    """)
+                .exchange()
+                .expectStatus().isBadRequest();
+    }
+
+    @Test
+    void upsertBank_rejectsNonAlphanumericName() {
+        webTestClient.post().uri("/api/v1/bank/")
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue("""
+                    {
+                        "bankCode": "37040044",
+                        "countryCode": "DE",
+                        "name": "Test <script>Bank",
+                        "accountAlgo": null
+                    }
+                    """)
+                .exchange()
+                .expectStatus().isBadRequest();
+    }
+
+    @Test
     void repositoryQueries_returnCorrectResults() {
         bankRepository.save(new Bank("37040044", "DE", "Commerzbank", null));
         bankRepository.save(new Bank("10010010", "DE", "Postbank", null));

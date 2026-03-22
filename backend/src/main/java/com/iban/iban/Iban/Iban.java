@@ -1,6 +1,6 @@
 package com.iban.iban.Iban;
 
-import java.util.Locale;
+import com.iban.common.CountryCodeUtil;
 
 public abstract class Iban {
 
@@ -57,18 +57,6 @@ public abstract class Iban {
     }
 
     public static String extractCountryCode(String value) {
-        if (value.length() < 2) {
-            throw new IllegalArgumentException("Value must have at least 2 letters for a valid country code");
-        }
-
-        String countryCode = value.substring(0, 2).toUpperCase();
-
-        for (String code : Locale.getISOCountries()) {
-            if (code.equals(countryCode)) {
-                return countryCode;
-            }
-        }
-
-        throw new IllegalArgumentException("No valid country code found");
+        return CountryCodeUtil.validate(value.substring(0, 2));
     }
 }
