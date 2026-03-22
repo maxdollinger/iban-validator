@@ -10,10 +10,10 @@ dev-backend:
 dev-frontend:
 	cd frontend && npm run dev
 
-docker-up:
+stack-up:
 	podman compose up --build
 
-docker-down:
+stack-down:
 	podman compose up down
 
 postgres-up:
