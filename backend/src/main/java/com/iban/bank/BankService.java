@@ -54,7 +54,7 @@ public class BankService {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(fieldName + " must not be blank");
         }
-        if (!value.matches("[a-zA-Z0-9 ]+")) {
+        if (!value.matches("[a-zA-Z0-9\\s-]+")) {
             throw new IllegalArgumentException(fieldName + " must only contain letters and numbers");
         }
     }

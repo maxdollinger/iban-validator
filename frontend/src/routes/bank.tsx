@@ -83,7 +83,7 @@ function Bank() {
                     <Input
                         id="name"
                         value={name}
-                        onChange={(e) => setName(e.target.value.replace(/[^a-zA-Z0-9\s]/g, ""))}
+                        onChange={(e) => setName(e.target.value.replace(/[^a-zA-Z0-9\s-]/g, ""))}
                         placeholder="Deutsche Bundesbank"
                         required
                     />
