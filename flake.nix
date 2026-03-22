@@ -16,11 +16,9 @@
           packages = with pkgs; [
             # Java
             jdk25
-            maven
 
             # Frontend
             nodejs_24
-            nodePackages.npm
 
             # Containers
             podman
