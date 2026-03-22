@@ -19,12 +19,11 @@
             maven
 
             # Frontend
-            nodejs_22
+            nodejs_24
             nodePackages.npm
 
             # Containers
             podman
-            docker-compose
 
             # Load testing
             wrk

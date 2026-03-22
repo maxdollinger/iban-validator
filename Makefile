@@ -11,10 +11,10 @@ dev-frontend:
 	cd frontend && npm run dev
 
 docker-up:
-	docker-compose up --build
+	podman compose up --build
 
 docker-down:
-	docker-compose down
+	podman compose up down
 
 postgres-up:
 	podman compose up -d postgres
@@ -23,23 +23,6 @@ postgres-down:
 	podman compose down postgres
 
 test-backend:
-	$(eval CONTAINER_ENV := $(shell \
-		if command -v docker &>/dev/null && docker info &>/dev/null 2>&1; then \
-			echo "docker"; \
-		elif command -v podman &>/dev/null && podman info &>/dev/null 2>&1; then \
-			echo "podman"; \
-		else \
-			echo "none"; \
-		fi))
-	@if [ "$(CONTAINER_ENV)" = "none" ]; then \
-		echo "Error: no container runtime found. Install Docker or Podman."; \
-		exit 1; \
-	elif [ "$(CONTAINER_ENV)" = "podman" ]; then \
-		echo "Using Podman"; \
-		DOCKER_HOST=unix:///run/user/$$(id -u)/podman/podman.sock \
-		TESTCONTAINERS_RYUK_DISABLED=true \
-		cd backend && mvn clean test; \
-	else \
-		echo "Using Docker"; \
-		cd backend && mvn clean test; \
-	fi
+	DOCKER_HOST=unix:///run/user/$$(id -u)/podman/podman.sock \
+	TESTCONTAINERS_RYUK_DISABLED=true \
+	cd backend && mvn clean test; \
