@@ -63,3 +63,9 @@ variable "ddl_auto" {
   type    = string
   default = "validate"
 }
+
+variable "use_spot" {
+  description = "Use Fargate Spot capacity provider for cost savings"
+  type        = bool
+  default     = false
+}

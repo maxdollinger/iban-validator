@@ -35,6 +35,11 @@ resource "aws_ecs_cluster" "main" {
   }
 }
 
+resource "aws_ecs_cluster_capacity_providers" "main" {
+  cluster_name       = aws_ecs_cluster.main.name
+  capacity_providers = var.use_spot ? ["FARGATE", "FARGATE_SPOT"] : ["FARGATE"]
+}
+
 resource "aws_cloudwatch_log_group" "backend" {
   name              = "/ecs/${var.project_name}-${var.environment}-backend"
   retention_in_days = 30
@@ -171,8 +176,24 @@ resource "aws_ecs_service" "backend" {
   name            = "${var.project_name}-${var.environment}-backend"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.backend.arn
-  desired_count   = var.desired_count
-  launch_type     = "FARGATE"
+  desired_count = var.desired_count
+
+  dynamic "capacity_provider_strategy" {
+    for_each = var.use_spot ? [1] : []
+    content {
+      capacity_provider = "FARGATE_SPOT"
+      weight            = 1
+      base              = 0
+    }
+  }
+
+  dynamic "capacity_provider_strategy" {
+    for_each = var.use_spot ? [] : [1]
+    content {
+      capacity_provider = "FARGATE"
+      weight            = 1
+    }
+  }
 
   network_configuration {
     subnets          = var.private_subnet_ids

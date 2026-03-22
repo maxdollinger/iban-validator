@@ -91,6 +91,7 @@ module "compute" {
   fargate_memory        = 512
   desired_count         = 1
   ddl_auto              = "update"
+  use_spot              = true
 }
 
 module "frontend" {

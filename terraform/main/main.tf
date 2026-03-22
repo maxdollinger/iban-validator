@@ -112,6 +112,7 @@ module "compute" {
   fargate_memory        = var.fargate_memory
   desired_count         = var.backend_desired_count
   ddl_auto              = "update"
+  use_spot              = true
 }
 
 module "frontend" {
