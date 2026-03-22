@@ -22,6 +22,7 @@
 
             # Containers
             podman
+            podman-compose
 
             # Load testing
             wrk
