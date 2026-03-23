@@ -51,6 +51,7 @@ public class IbanService {
         String countryCode = Iban.extractCountryCode(value);
         return switch (countryCode) {
             case "DE" -> new GermanIban(value);
+            case "AT" -> new AustriaIban(value);
             default -> new BasicIban(value);
         };
     }
