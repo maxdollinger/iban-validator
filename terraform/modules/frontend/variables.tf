@@ -9,7 +9,3 @@ variable "environment" {
 variable "alb_dns_name" {
   type = string
 }
-
-variable "account_id" {
-  type = string
-}

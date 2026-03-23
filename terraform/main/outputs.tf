@@ -18,15 +18,14 @@ output "ecr_repository_url" {
   value       = aws_ecr_repository.backend.repository_url
 }
 
-output "s3_bucket_name" {
-  description = "S3 bucket name for frontend deployment"
-  value       = module.frontend.s3_bucket_name
+output "litestream_s3_bucket" {
+  description = "S3 bucket for Litestream SQLite backups"
+  value       = aws_s3_bucket.litestream_backups.id
 }
 
-output "rds_endpoint" {
-  description = "RDS instance endpoint"
-  value       = module.database.rds_endpoint
-  sensitive   = true
+output "efs_file_system_id" {
+  description = "EFS file system ID for SQLite storage"
+  value       = aws_efs_file_system.data.id
 }
 
 # Outputs consumed by feature branch deployments via terraform_remote_state
@@ -38,25 +37,4 @@ output "vpc_id" {
 output "public_subnet_ids" {
   description = "Public subnet IDs for feature branches"
   value       = module.networking.public_subnet_ids
-}
-
-output "private_subnet_ids" {
-  description = "Private subnet IDs for feature branches"
-  value       = module.networking.private_subnet_ids
-}
-
-output "rds_address" {
-  description = "RDS hostname for feature branches"
-  value       = module.database.rds_address
-  sensitive   = true
-}
-
-output "rds_port" {
-  description = "RDS port for feature branches"
-  value       = module.database.rds_port
-}
-
-output "db_secret_arn" {
-  description = "Secrets Manager ARN for DB credentials"
-  value       = module.database.db_secret_arn
 }

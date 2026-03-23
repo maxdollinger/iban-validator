@@ -6,10 +6,6 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.6"
-    }
   }
 
   backend "s3" {
@@ -52,28 +48,10 @@ resource "aws_ecr_repository" "backend" {
 module "networking" {
   source = "../modules/networking"
 
-  project_name         = var.project_name
-  environment          = var.environment
-  vpc_cidr             = var.vpc_cidr
-  public_subnet_cidrs  = var.public_subnet_cidrs
-  private_subnet_cidrs = var.private_subnet_cidrs
-}
-
-module "database" {
-  source = "../modules/database"
-
-  project_name            = var.project_name
-  environment             = var.environment
-  vpc_id                  = module.networking.vpc_id
-  vpc_cidr                = module.networking.vpc_cidr_block
-  private_subnet_ids      = module.networking.private_subnet_ids
-  db_name                 = var.db_name
-  db_username             = var.db_username
-  db_engine_version       = var.db_engine_version
-  db_instance_class       = var.db_instance_class
-  multi_az                = var.rds_multi_az
-  skip_final_snapshot     = var.rds_skip_final_snapshot
-  backup_retention_period = var.rds_backup_retention_period
+  project_name        = var.project_name
+  environment         = var.environment
+  vpc_cidr            = var.vpc_cidr
+  public_subnet_cidrs = var.public_subnet_cidrs
 }
 
 module "certificate" {
@@ -93,6 +71,91 @@ module "loadbalancer" {
   certificate_arn   = module.certificate.certificate_arn
 }
 
+# EFS for persistent SQLite storage
+resource "aws_efs_file_system" "data" {
+  encrypted = true
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-data"
+  }
+}
+
+resource "aws_security_group" "efs" {
+  name        = "${var.project_name}-${var.environment}-efs-sg"
+  description = "Security group for EFS mount targets"
+  vpc_id      = module.networking.vpc_id
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-efs-sg"
+  }
+}
+
+resource "aws_vpc_security_group_ingress_rule" "efs_from_fargate" {
+  security_group_id            = aws_security_group.efs.id
+  referenced_security_group_id = module.compute.fargate_security_group_id
+  from_port                    = 2049
+  to_port                      = 2049
+  ip_protocol                  = "tcp"
+}
+
+resource "aws_efs_mount_target" "data" {
+  count = length(module.networking.public_subnet_ids)
+
+  file_system_id  = aws_efs_file_system.data.id
+  subnet_id       = module.networking.public_subnet_ids[count.index]
+  security_groups = [aws_security_group.efs.id]
+}
+
+# S3 bucket for Litestream SQLite backups
+resource "aws_s3_bucket" "litestream_backups" {
+  bucket = "${var.project_name}-litestream-${var.environment}-${data.aws_caller_identity.current.account_id}"
+
+  tags = {
+    Name = "${var.project_name}-${var.environment}-litestream-backups"
+  }
+}
+
+resource "aws_s3_bucket_versioning" "litestream_backups" {
+  bucket = aws_s3_bucket.litestream_backups.id
+
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+resource "aws_s3_bucket_server_side_encryption_configuration" "litestream_backups" {
+  bucket = aws_s3_bucket.litestream_backups.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+    bucket_key_enabled = true
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "litestream_backups" {
+  bucket = aws_s3_bucket.litestream_backups.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "litestream_backups" {
+  bucket = aws_s3_bucket.litestream_backups.id
+
+  rule {
+    id     = "cleanup-old-versions"
+    status = "Enabled"
+
+    noncurrent_version_expiration {
+      noncurrent_days = 30
+    }
+  }
+}
+
 module "compute" {
   source = "../modules/compute"
 
@@ -100,19 +163,20 @@ module "compute" {
   environment           = var.environment
   aws_region            = var.aws_region
   vpc_id                = module.networking.vpc_id
-  private_subnet_ids    = module.networking.private_subnet_ids
+  subnet_ids            = module.networking.public_subnet_ids
   alb_security_group_id = module.loadbalancer.alb_security_group_id
   target_group_arn      = module.loadbalancer.target_group_arn
   ecr_repository_url    = aws_ecr_repository.backend.repository_url
   image_tag             = var.environment
-  db_endpoint           = module.database.rds_endpoint
-  db_name               = var.db_name
-  db_secret_arn         = module.database.db_secret_arn
   fargate_cpu           = var.fargate_cpu
   fargate_memory        = var.fargate_memory
-  desired_count         = var.backend_desired_count
-  ddl_auto              = "update"
-  use_spot              = true
+  desired_count         = 1
+  use_spot              = var.environment != "prod"
+  efs_file_system_id         = aws_efs_file_system.data.id
+  litestream_s3_bucket       = aws_s3_bucket.litestream_backups.id
+  litestream_s3_path         = "${var.environment}/iban-backup"
+  enable_litestream_replicate = true
+  enable_litestream_restore   = false
 }
 
 module "frontend" {
@@ -121,5 +185,4 @@ module "frontend" {
   project_name = var.project_name
   environment  = var.environment
   alb_dns_name = module.loadbalancer.alb_dns_name
-  account_id   = data.aws_caller_identity.current.account_id
 }

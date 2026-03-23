@@ -6,10 +6,6 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
-    postgresql = {
-      source  = "cyrilgdn/postgresql"
-      version = "~> 1.22"
-    }
   }
 
   backend "s3" {
@@ -34,12 +30,9 @@ provider "aws" {
   }
 }
 
-data "aws_caller_identity" "current" {}
-
 locals {
   staging     = data.terraform_remote_state.staging.outputs
   env         = "feat-${var.branch_name}"
-  db_name     = "iban_${replace(var.branch_name, "-", "_")}"
   domain_name = "${var.branch_name}.${var.hosted_zone_name}"
 }
 
@@ -72,6 +65,7 @@ module "loadbalancer" {
   certificate_arn   = module.certificate.certificate_arn
 }
 
+# Ephemeral compute — restores SQLite from staging S3 on startup, no backup
 module "compute" {
   source = "../modules/compute"
 
@@ -79,26 +73,20 @@ module "compute" {
   environment           = local.env
   aws_region            = var.aws_region
   vpc_id                = local.staging.vpc_id
-  private_subnet_ids    = local.staging.private_subnet_ids
+  subnet_ids            = local.staging.public_subnet_ids
   alb_security_group_id = module.loadbalancer.alb_security_group_id
   target_group_arn      = module.loadbalancer.target_group_arn
   ecr_repository_url    = local.staging.ecr_repository_url
   image_tag             = var.branch_name
-  db_endpoint           = local.staging.rds_endpoint
-  db_name               = local.db_name
-  db_secret_arn         = local.staging.db_secret_arn
   fargate_cpu           = 256
   fargate_memory        = 512
   desired_count         = 1
-  ddl_auto              = "update"
   use_spot              = true
-}
 
-module "frontend" {
-  source = "../modules/frontend"
-
-  project_name = var.project_name
-  environment  = local.env
-  alb_dns_name = module.loadbalancer.alb_dns_name
-  account_id   = data.aws_caller_identity.current.account_id
+  # Ephemeral: no EFS, restore from staging S3, no replicate
+  efs_file_system_id         = null
+  litestream_s3_bucket       = local.staging.litestream_s3_bucket
+  litestream_s3_path         = "staging/iban-backup"
+  enable_litestream_restore  = true
+  enable_litestream_replicate = false
 }
