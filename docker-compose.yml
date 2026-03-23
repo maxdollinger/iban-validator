@@ -1,44 +1,19 @@
 services:
-  postgres:
-    image: postgres:18
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      SQLITE_DB_PATH: /data/iban.db
+    volumes:
+      - dbdata:/data
     deploy:
       resources:
         limits:
           cpus: "4"
-          memory: 12g
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres_iban_dev
-      POSTGRES_DB: iban
-    volumes:
-      - pgdata:/var/lib/postgresql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-  backend:
-    build: ./backend
-    ports:
-      - "8080:8080"
-    environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/iban
-    deploy:
-      resources:
-        limits:
-          cpus: "2"
-          memory: 4g
-    depends_on:
-      postgres:
-        condition: service_healthy
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:80"
-    depends_on:
-      - backend
+          memory: 8g
 
 volumes:
-  pgdata:
+  dbdata:

@@ -1,17 +1,23 @@
-# Stage 1: Build
-FROM maven:3.9-eclipse-temurin-25 AS build
+# Stage 1: Build frontend
+FROM node:24-alpine AS frontend-build
 WORKDIR /app
-COPY pom.xml .
-COPY src ./src
+COPY frontend/package.json frontend/package-lock.json* ./
+RUN npm ci
+COPY frontend/ .
+RUN npm run build
+
+# Stage 2: Build backend
+FROM maven:3.9-eclipse-temurin-25 AS backend-build
+WORKDIR /app
+COPY backend/pom.xml .
+COPY backend/src ./src
+COPY --from=frontend-build /app/dist ./src/main/resources/static/
 RUN mvn package -DskipTests
 
-# Stage 2: Runtime
+# Stage 3: Runtime
 FROM eclipse-temurin:25-jre-alpine
 WORKDIR /app
-
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-COPY --from=build --chown=appuser:appgroup /app/target/*.jar app.jar
-
-USER appuser
+RUN mkdir -p /data
+COPY --from=backend-build /app/target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

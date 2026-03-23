@@ -33,10 +33,6 @@
 
           shellHook = ''
             export JAVA_HOME=${pkgs.jdk25}
-
-            # Testcontainers with Podman
-            export DOCKER_HOST="unix:///run/user/$(id -u)/podman/podman.sock"
-            export TESTCONTAINERS_RYUK_DISABLED=true
           '';
         };
       });

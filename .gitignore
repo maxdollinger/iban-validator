@@ -32,6 +32,12 @@ build/
 ### VS Code ###
 .vscode/
 
+### SQLite ###
+data/
+*.db
+*.db-wal
+*.db-shm
+
 
 # Logs
 logs
