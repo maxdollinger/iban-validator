@@ -140,7 +140,7 @@ function StepBankName({ result }: { result: IbanValidationResponse }) {
         <div className="flex items-start gap-3 rounded-lg border border-green-300 bg-green-50 p-4 text-green-700 dark:border-green-800 dark:bg-green-950/50 dark:text-green-400">
             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0" />
             <div>
-                <p className="font-medium">Bank: {result.bankName}</p>
+                <p className="mt-1">Bank: {result.bankName}</p>
             </div>
         </div>
     );
